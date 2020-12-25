@@ -19,10 +19,12 @@ class DmnEngineTest extends AnyFlatSpec with Matchers {
 
   "A DMN engine" should "evaluate a decision table" in {
 
-    engine.eval(discountDecision,
+    val result = engine.eval(discountDecision,
                 "discount",
-                Map("customer" -> "Business", "orderSize" -> 7)) should be(
-      Right(Result(0.1)))
+                Map("customer" -> "Business", "orderSize" -> 7))
+
+    result.isRight should be (true)
+    result.map(_.value should be (0.1))
   }
 
   it should "parse and evaluate a decision table" in {
@@ -33,10 +35,12 @@ class DmnEngineTest extends AnyFlatSpec with Matchers {
 
     val parsedDmn = parseResult.right.get
 
-    engine.eval(parsedDmn,
+    val result = engine.eval(parsedDmn,
                 "discount",
-                Map("customer" -> "Business", "orderSize" -> 7)) should be(
-      Right(Result(0.1)))
+                Map("customer" -> "Business", "orderSize" -> 7))
+
+    result.isRight should be (true)
+    result.map(_.value should be (0.1))
   }
 
   it should "report parse failures" in {
@@ -44,10 +48,7 @@ class DmnEngineTest extends AnyFlatSpec with Matchers {
     val parseResult = engine.parse(invalidExpressionDecision)
 
     parseResult.isLeft should be(true)
-
-    val failure = parseResult.left.get
-
-    failure.message should include("Failed to parse FEEL unary-tests '> 10L'")
+    parseResult.left.map(_.message should include("Failed to parse FEEL unary-tests '> 10L'"))
   }
 
   it should "report parse failures on evaluation" in {
@@ -56,10 +57,7 @@ class DmnEngineTest extends AnyFlatSpec with Matchers {
       engine.eval(invalidExpressionDecision, "discount", Map[String, Any]())
 
     result.isLeft should be(true)
-
-    val failure = result.left.get
-
-    failure.message should include("Failed to parse FEEL unary-tests '> 10L'")
+    result.left.map(_.message should include("Failed to parse FEEL unary-tests '> 10L'"))
   }
 
   it should "report an evaluation failure" in {
@@ -70,10 +68,7 @@ class DmnEngineTest extends AnyFlatSpec with Matchers {
       Map[String, Any]("customer" -> "Business", "orderSize" -> "foo"))
 
     result.isLeft should be(true)
-
-    val failure = result.left.get
-
-    failure.message should include("failed to evaluate expression '< 10'")
+    result.left.map(_.message should include("failed to evaluate expression '< 10'"))
   }
 
   it should "report parse failures if expression language is set" in {
@@ -81,11 +76,7 @@ class DmnEngineTest extends AnyFlatSpec with Matchers {
     val parseResult = engine.parse(expressionLanguageDecision)
 
     parseResult.isLeft should be(true)
-
-    val failure = parseResult.left.get
-
-    failure.message should include(
-      "Expression language 'groovy' is not supported")
+    parseResult.left.map(_.message should include("Expression language 'groovy' is not supported"))
   }
 
   it should "report parse failures if an expression has no content" in {
