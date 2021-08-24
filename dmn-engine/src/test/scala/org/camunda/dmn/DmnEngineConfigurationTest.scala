@@ -20,14 +20,19 @@ class DmnEngineConfigurationTest extends AnyFlatSpec with Matchers {
 
   "The DMN engine" should "evaluate a decision with spaces" in {
 
-    engine.eval(decisionWithSpaces, "greeting", Map("name" -> "DMN")) should be(
-      Right(Result("Hello DMN")))
+    val result =
+      engine.eval(decisionWithSpaces, "greeting", Map("name" -> "DMN"))
+
+    result.isRight should be(true)
+    result.map(_.value should be("Hello DMN"))
   }
 
   it should "evaluate a decision with dash" in {
 
-    engine.eval(decisionWithDash, "greeting", Map("name" -> "DMN")) should be(
-      Right(Result("Hello DMN")))
+    val result = engine.eval(decisionWithDash, "greeting", Map("name" -> "DMN"))
+
+    result.isRight should be(true)
+    result.map(_.value should be("Hello DMN"))
   }
 
 }
