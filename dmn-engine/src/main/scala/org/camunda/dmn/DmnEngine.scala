@@ -17,6 +17,8 @@ import scala.reflect.{ClassTag, classTag}
 
 object DmnEngine {
 
+  type DecisionResult = Either[Failure, EvalResult]
+
   case class Failure(message: String)
 
   sealed trait EvalResult {
@@ -150,7 +152,7 @@ class DmnEngine(configuration: DmnEngine.Configuration =
 
   def eval(stream: InputStream,
            decisionId: String,
-           context: Map[String, Any]): Either[Failure, EvalResult] = {
+           context: Map[String, Any]): DecisionResult = {
     parse(stream).flatMap(parsedDmn => eval(parsedDmn, decisionId, context))
   }
 
@@ -159,7 +161,7 @@ class DmnEngine(configuration: DmnEngine.Configuration =
 
   def eval(dmn: ParsedDmn,
            decisionId: String,
-           variables: Map[String, Any]): Either[Failure, EvalResult] = {
+           variables: Map[String, Any]): DecisionResult = {
     dmn.decisionsById
       .get(decisionId)
       .map(decision =>
@@ -169,7 +171,7 @@ class DmnEngine(configuration: DmnEngine.Configuration =
 
   def evalByName(dmn: ParsedDmn,
                  decisionName: String,
-                 variables: Map[String, Any]): Either[Failure, EvalResult] = {
+                 variables: Map[String, Any]): DecisionResult = {
     dmn.decisionsByName
       .get(decisionName)
       .map(decision =>
@@ -182,26 +184,26 @@ class DmnEngine(configuration: DmnEngine.Configuration =
   def eval(
       stream: InputStream,
       decisionId: String,
-      context: java.util.Map[String, Object]): Either[Failure, EvalResult] =
+      context: java.util.Map[String, Object]): DecisionResult =
     eval(stream, decisionId, context.asScala.toMap)
 
   def eval(
       dmn: ParsedDmn,
       decisionId: String,
-      variables: java.util.Map[String, Object]): Either[Failure, EvalResult] =
+      variables: java.util.Map[String, Object]): DecisionResult =
     eval(dmn, decisionId, variables.asScala.toMap)
 
   def evalByName(
       dmn: ParsedDmn,
       decisionName: String,
-      variables: java.util.Map[String, Object]): Either[Failure, EvalResult] =
+      variables: java.util.Map[String, Object]): DecisionResult =
     evalByName(dmn, decisionName, variables.asScala.toMap)
 
   ///// internal
 
   private def evalDecision(
       decision: ParsedDecision,
-      context: EvalContext): Either[Failure, EvalResult] = {
+      context: EvalContext): DecisionResult = {
 
     val result = decisionEval.eval(decision, context)
 
