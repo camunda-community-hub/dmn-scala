@@ -21,7 +21,7 @@ class DmnJobHandler(engine: StandaloneEngine) extends JobHandler {
         engine.evalDecisionById(decisionId, variables) match {
           case Left(Failure(msg)) =>
             error(s"Fail to evaluate decision '$decisionId': $msg")
-          case Right(NilResult(_)) => complete(client, job, null)
+          case Right(NilResult(_))      => complete(client, job, null)
           case Right(Result(result, _)) => complete(client, job, result)
         }
       }

@@ -20,10 +20,10 @@ class InvocationTest extends AnyFlatSpec with Matchers with DecisionTest {
 
   it should "execute a BKM without parameters" in {
     eval(withoutParameters, "applicantData", Map()) should be(
-       Map("Age" -> 51,
-            "MaritalStatus" -> "M",
-            "EmploymentStatus" -> "EMPLOYED",
-            "ExistingCustomer" -> false))
+      Map("Age" -> 51,
+          "MaritalStatus" -> "M",
+          "EmploymentStatus" -> "EMPLOYED",
+          "ExistingCustomer" -> false))
   }
 
   it should "fail if parameter is not set" in {

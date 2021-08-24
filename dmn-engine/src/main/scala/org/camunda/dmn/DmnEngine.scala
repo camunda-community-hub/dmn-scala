@@ -212,7 +212,7 @@ class DmnEngine(configuration: DmnEngine.Configuration =
 
     result match {
       case Right(_) => auditLogListeners.foreach(_.onEval(auditLog))
-      case Left(_) => auditLogListeners.foreach(_.onFailure(auditLog))
+      case Left(_)  => auditLogListeners.foreach(_.onFailure(auditLog))
     }
 
     // TODO (saig0): think about including the audit log when the evaluation failed

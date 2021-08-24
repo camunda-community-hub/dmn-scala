@@ -13,7 +13,8 @@ class BkmTest extends AnyFlatSpec with Matchers with DecisionTest {
     "/bkm/BkmWithoutEncapsulatedLogic.dmn")
 
   "A BKM with a Literal Expression" should "be invoked as function" in {
-    eval(literalExpression, "literalExpression", Map("x" -> 2, "y" -> 3)) should be(5)
+    eval(literalExpression, "literalExpression", Map("x" -> 2, "y" -> 3)) should be(
+      5)
   }
 
   "A BKM with a Context" should "be invoked as function" in {
@@ -34,11 +35,13 @@ class BkmTest extends AnyFlatSpec with Matchers with DecisionTest {
   }
 
   "A BKM with a Decision Table" should "be invoked as function" in {
-    eval(decisionTable, "decisionTable", Map("x" -> "Business", "y" -> 7)) should be(0.1)
+    eval(decisionTable, "decisionTable", Map("x" -> "Business", "y" -> 7)) should be(
+      0.1)
   }
 
   "A BKM without encapsulated logic" should "be ignored" in {
-    eval(withoutEncapsulatedLogic, "literalExpression", Map("x" -> 2, "y" -> 3)) should be(5)
+    eval(withoutEncapsulatedLogic, "literalExpression", Map("x" -> 2, "y" -> 3)) should be(
+      5)
   }
 
 }

@@ -44,8 +44,8 @@ class DmnEngineRestServlet(engine: StandaloneEngine)
     val variables = parsedBody.extract[Map[String, Any]]
 
     engine.evalDecisionById(id, variables) match {
-      case Left(failure)    => BadRequest(failure)
-      case Right(NilResult(_)) => DecisionEvalResult(null)
+      case Left(failure)            => BadRequest(failure)
+      case Right(NilResult(_))      => DecisionEvalResult(null)
       case Right(Result(result, _)) => DecisionEvalResult(result)
     }
   }

@@ -18,8 +18,8 @@ class DecisionTableTest extends AnyFlatSpec with Matchers with DecisionTest {
 
   "A decision table with single output" should "return single value" in {
     eval(discountDecision,
-      "discount",
-      Map("customer" -> "Business", "orderSize" -> 7)) should be(0.1)
+         "discount",
+         Map("customer" -> "Business", "orderSize" -> 7)) should be(0.1)
   }
 
   it should "return value list" in {
@@ -29,14 +29,14 @@ class DecisionTableTest extends AnyFlatSpec with Matchers with DecisionTest {
 
   it should "return null if no rule match" in {
     eval(discountDecision,
-      "discount",
-      Map("customer" -> "Something else", "orderSize" -> 9)) should be(None)
+         "discount",
+         Map("customer" -> "Something else", "orderSize" -> 9)) should be(None)
   }
 
   it should "return the default-output if no rule match" in {
     eval(discountWithDefaultOutputDecision,
-      "discount",
-      Map("customer" -> "Something else", "orderSize" -> 9)) should be(0.05)
+         "discount",
+         Map("customer" -> "Something else", "orderSize" -> 9)) should be(0.05)
   }
 
   "A decision table with multiple outputs" should "return single values" in {
@@ -53,11 +53,11 @@ class DecisionTableTest extends AnyFlatSpec with Matchers with DecisionTest {
     eval(routingRulesDecision, "routingRules", context) should be(
       List(
         Map("routing" -> "REFER",
-          "reviewLevel" -> "LEVEL 2",
-          "reason" -> "Applicant under dept review"),
+            "reviewLevel" -> "LEVEL 2",
+            "reason" -> "Applicant under dept review"),
         Map("routing" -> "ACCEPT",
-          "reviewLevel" -> "NONE",
-          "reason" -> "Acceptable")
+            "reviewLevel" -> "NONE",
+            "reason" -> "Acceptable")
       ))
   }
 

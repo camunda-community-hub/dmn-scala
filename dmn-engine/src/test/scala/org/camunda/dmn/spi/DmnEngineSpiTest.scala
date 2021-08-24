@@ -14,24 +14,24 @@ class DmnEngineSpiTest extends AnyFlatSpec with Matchers {
 
     val result = engine.eval(decision, "varInput", Map("in" -> "bar"))
 
-    result.isRight should be (true)
-    result.map(_.value should be ("baz"))
+    result.isRight should be(true)
+    result.map(_.value should be("baz"))
   }
 
   it should "transform the output" in {
 
     val result = engine.eval(decision, "varOutput", Map[String, Any]())
 
-    result.isRight should be (true)
-    result.map(_.value should be ("baz"))
+    result.isRight should be(true)
+    result.map(_.value should be("baz"))
   }
 
   "A custom function provider" should "provide a function" in {
 
     val result = engine.eval(decision, "invFunction", Map("x" -> 2))
 
-    result.isRight should be (true)
-    result.map(_.value should be (3))
+    result.isRight should be(true)
+    result.map(_.value should be(3))
   }
 
 }
