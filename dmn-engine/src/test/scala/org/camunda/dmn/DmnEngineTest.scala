@@ -1,27 +1,35 @@
 package org.camunda.dmn
 
 import org.camunda.dmn.DmnEngine._
+import org.camunda.dmn.parser.ParsedDmn
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+
+import java.io.InputStream
 
 class DmnEngineTest extends AnyFlatSpec with Matchers {
 
   private val engine = new DmnEngine
 
-  private def discountDecision =
-    getClass.getResourceAsStream("/decisiontable/discount.dmn")
-  private def invalidExpressionDecision =
-    getClass.getResourceAsStream("/decisiontable/invalid-expression.dmn")
-  private def expressionLanguageDecision =
-    getClass.getResourceAsStream("/decisiontable/expression-language.dmn")
-  private def emptyExpressionDecision =
-    getClass.getResourceAsStream("/decisiontable/empty-expression.dmn")
+  private def discountDecision = getClass.getResourceAsStream("/decisiontable/discount.dmn")
+  private def invalidExpressionDecision = getClass.getResourceAsStream("/decisiontable/invalid-expression.dmn")
+  private def expressionLanguageDecision = getClass.getResourceAsStream("/decisiontable/expression-language.dmn")
+  private def emptyExpressionDecision = getClass.getResourceAsStream("/decisiontable/empty-expression.dmn")
+
+  private def parse(resource: InputStream): ParsedDmn = {
+      engine.parse(resource) match {
+        case Right(decision) => decision
+        case Left(failure) => throw new AssertionError(failure)
+      }
+  }
 
   "A DMN engine" should "evaluate a decision table" in {
 
-    val result = engine.eval(discountDecision,
+    val parsedDmn = parse(discountDecision)
+    val result = engine.eval(parsedDmn,
                              "discount",
                              Map("customer" -> "Business", "orderSize" -> 7))
+
 
     result.isRight should be(true)
     result.map(_.value should be(0.1))
@@ -30,17 +38,16 @@ class DmnEngineTest extends AnyFlatSpec with Matchers {
   it should "parse and evaluate a decision table" in {
 
     val parseResult = engine.parse(discountDecision)
-
     parseResult.isRight should be(true)
 
-    val parsedDmn = parseResult.right.get
+    parseResult.map { parsedDmn =>
+      val result = engine.eval(parsedDmn,
+        "discount",
+        Map("customer" -> "Business", "orderSize" -> 7))
 
-    val result = engine.eval(parsedDmn,
-                             "discount",
-                             Map("customer" -> "Business", "orderSize" -> 7))
-
-    result.isRight should be(true)
-    result.map(_.value should be(0.1))
+      result.isRight should be(true)
+      result.map(_.value should be(0.1))
+    }
   }
 
   it should "report parse failures" in {
@@ -64,14 +71,15 @@ class DmnEngineTest extends AnyFlatSpec with Matchers {
 
   it should "report an evaluation failure" in {
 
+    val parsedDmn = parse(discountDecision)
     val result = engine.eval(
-      discountDecision,
+      parsedDmn,
       "discount",
       Map[String, Any]("customer" -> "Business", "orderSize" -> "foo"))
 
     result.isLeft should be(true)
     result.left.map(
-      _.message should include("failed to evaluate expression '< 10'"))
+      _.failure.message should include("failed to evaluate expression '< 10'"))
   }
 
   it should "report parse failures if expression language is set" in {
@@ -94,5 +102,7 @@ class DmnEngineTest extends AnyFlatSpec with Matchers {
     failure.message should include(
       "The expression 'inputExpression1' must not be empty.")
   }
+
+  // TODO (saig0): verify evaluation result with audit log
 
 }

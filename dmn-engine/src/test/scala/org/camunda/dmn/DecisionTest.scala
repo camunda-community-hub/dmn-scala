@@ -5,6 +5,8 @@ import org.camunda.dmn.parser.ParsedDmn
 import org.camunda.dmn.Audit.AuditLog
 import org.camunda.dmn.Audit.AuditLogListener
 
+import java.io.InputStream
+
 trait DecisionTest {
 
   val engine = new DmnEngine(auditLogListeners = List(new TestAuditLogListener))
@@ -20,7 +22,7 @@ trait DecisionTest {
   def eval(decision: ParsedDmn, id: String, context: Map[String, Any]): Any =
     engine.eval(decision, id, context) match {
       case Right(result) => result.value
-      case Left(failure) => failure
+      case Left(EvalFailure(failure, _)) => failure
     }
 
   var lastAuditLog: AuditLog = _

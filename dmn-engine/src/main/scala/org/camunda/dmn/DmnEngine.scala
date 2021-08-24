@@ -17,7 +17,7 @@ import scala.reflect.{ClassTag, classTag}
 
 object DmnEngine {
 
-  type DecisionResult = Either[Failure, EvalResult]
+  type DecisionResult = Either[EvalFailure, EvalResult]
 
   case class Failure(message: String)
 
@@ -32,6 +32,8 @@ object DmnEngine {
   case class NilResult(auditLog: AuditLog) extends EvalResult {
     override val value: Any = None
   }
+
+  case class EvalFailure(failure: Failure, auditLog: AuditLog)
 
   case class EvalContext(dmn: ParsedDmn,
                          variables: Map[String, Any],
@@ -150,10 +152,15 @@ class DmnEngine(configuration: DmnEngine.Configuration =
 
   ///// public API
 
+  @deprecated(message = "The DMN should be parsed before evaluating it", since = "1.7.0")
   def eval(stream: InputStream,
            decisionId: String,
-           context: Map[String, Any]): DecisionResult = {
-    parse(stream).flatMap(parsedDmn => eval(parsedDmn, decisionId, context))
+           context: Map[String, Any]): Either[Failure, EvalResult] = {
+    parse(stream)
+      .flatMap(parsedDmn => eval(parsedDmn, decisionId, context)
+        .left.map {
+        case EvalFailure(failure, _) => failure
+      })
   }
 
   def parse(stream: InputStream): Either[Failure, ParsedDmn] =
@@ -166,7 +173,11 @@ class DmnEngine(configuration: DmnEngine.Configuration =
       .get(decisionId)
       .map(decision =>
         evalDecision(decision, EvalContext(dmn, variables, decision)))
-      .getOrElse(Left(Failure(s"no decision found with id '$decisionId'")))
+      .getOrElse(Left(
+        EvalFailure(
+          failure = Failure(s"no decision found with id '$decisionId'"),
+          auditLog = AuditLog(dmn = dmn, entries = List.empty)
+        )))
   }
 
   def evalByName(dmn: ParsedDmn,
@@ -176,15 +187,20 @@ class DmnEngine(configuration: DmnEngine.Configuration =
       .get(decisionName)
       .map(decision =>
         evalDecision(decision, EvalContext(dmn, variables, decision)))
-      .getOrElse(Left(Failure(s"no decision found with name '$decisionName'")))
+      .getOrElse(Left(
+        EvalFailure(
+          failure = Failure(s"no decision found with name '$decisionName'"),
+          auditLog = AuditLog(dmn = dmn, entries = List.empty)
+        )))
   }
 
   ///// Java public API
 
+  @deprecated(message = "The DMN should be parsed before evaluating it", since = "1.7.0")
   def eval(
       stream: InputStream,
       decisionId: String,
-      context: java.util.Map[String, Object]): DecisionResult =
+      context: java.util.Map[String, Object]): Either[Failure, EvalResult] =
     eval(stream, decisionId, context.asScala.toMap)
 
   def eval(
@@ -206,7 +222,6 @@ class DmnEngine(configuration: DmnEngine.Configuration =
       context: EvalContext): DecisionResult = {
 
     val result = decisionEval.eval(decision, context)
-
     val auditLog = AuditLog(context.dmn, context.auditLog.toList)
 
     result match {
@@ -214,13 +229,14 @@ class DmnEngine(configuration: DmnEngine.Configuration =
       case Left(_)  => auditLogListeners.foreach(_.onFailure(auditLog))
     }
 
-    // TODO (saig0): think about including the audit log when the evaluation failed
     result.map {
       case ValNull => NilResult(auditLog)
       case value =>
         val unpacked = valueMapper.unpackVal(value)
         Result(unpacked, auditLog)
-    }
+    }.left.map( failure =>
+      EvalFailure(failure, auditLog)
+    )
   }
 
   private def evalExpression(expression: ParsedDecisionLogic,

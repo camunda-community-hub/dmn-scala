@@ -1,6 +1,7 @@
-package org.camunda.dmn
+package org.camunda.dmn.spi
 
-import org.camunda.dmn.DmnEngine._
+import org.camunda.dmn.DmnEngine
+import org.camunda.dmn.parser.ParsedDmn
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -8,7 +9,13 @@ class DmnEngineSpiTest extends AnyFlatSpec with Matchers {
 
   val engine = new DmnEngine
 
-  def decision = getClass.getResourceAsStream("/spi/SpiTests.dmn")
+  lazy val decision: ParsedDmn = {
+    val resource = getClass.getResourceAsStream("/spi/SpiTests.dmn")
+    engine.parse(resource) match {
+      case Right(decision) => decision
+      case Left(failure) => throw new AssertionError(failure)
+    }
+  }
 
   "A custom value mapper" should "transform the input" in {
 
