@@ -20,18 +20,15 @@ object DmnEngine {
   case class Failure(message: String)
 
   sealed trait EvalResult {
-    val isNil: Boolean
     val value: Any
     val auditLog: AuditLog
+    def isNil: Boolean = value == None
   }
 
-  case class Result(value: Any, auditLog: AuditLog) extends EvalResult {
-    val isNil = false
-  }
+  case class Result(value: Any, auditLog: AuditLog) extends EvalResult
 
   case class NilResult(auditLog: AuditLog) extends EvalResult {
-    val isNil = true
-    val value = None
+    override val value: Any = None
   }
 
   case class EvalContext(dmn: ParsedDmn,
